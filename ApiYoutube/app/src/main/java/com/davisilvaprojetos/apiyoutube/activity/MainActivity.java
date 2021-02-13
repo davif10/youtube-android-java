@@ -5,16 +5,20 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 
 import com.davisilvaprojetos.apiyoutube.R;
 import com.davisilvaprojetos.apiyoutube.adapter.AdapterVideo;
 import com.davisilvaprojetos.apiyoutube.api.YoutubeService;
 import com.davisilvaprojetos.apiyoutube.helper.RetrofitConfig;
 import com.davisilvaprojetos.apiyoutube.helper.YoutubeConfig;
+import com.davisilvaprojetos.apiyoutube.listener.RecyclerItemClickListener;
 import com.davisilvaprojetos.apiyoutube.model.Item;
 import com.davisilvaprojetos.apiyoutube.model.Resultado;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
@@ -55,13 +59,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         //Recupera Videos
-        recuperarVideos();
+        recuperarVideos("");
 
         //Configura métodos para SearchView
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                recuperarVideos(query);
+                return true;
             }
 
             @Override
@@ -77,19 +82,22 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSearchViewClosed() {
-
+                    recuperarVideos("");
             }
         });
     }
 
-    private void recuperarVideos(){
+    private void recuperarVideos(String pesquisa){
+        String q = pesquisa.replaceAll(" ","+");
         YoutubeService youtubeService = retrofit.create(YoutubeService.class);
         youtubeService.recuperarVideos(
                 "snippet",
                 "date",
                 "20",
                 YoutubeConfig.CHAVE_YOUTUBE_API,
-                YoutubeConfig.CANAL_ID
+                YoutubeConfig.CANAL_ID,
+                q
+
         ).enqueue(new Callback<Resultado>() {
             @Override
             public void onResponse(Call<Resultado> call, Response<Resultado> response) {
@@ -111,6 +119,32 @@ public class MainActivity extends AppCompatActivity {
         recyclerVideos.setHasFixedSize(true);
         recyclerVideos.setLayoutManager(new LinearLayoutManager(this));
         recyclerVideos.setAdapter(adapterVideo);
+
+        //Configura evento de clique
+        recyclerVideos.addOnItemTouchListener(new RecyclerItemClickListener(
+                this,
+                recyclerVideos,
+                new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        Item video = videos.get(position);
+                        String idVideo = video.id.videoId;
+                        Intent i = new Intent(MainActivity.this,PlayerActivity.class);
+                        i.putExtra("idVideo",idVideo);
+                        startActivity(i);
+                    }
+
+                    @Override
+                    public void onLongItemClick(View view, int position) {
+
+                    }
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    }
+                }
+        ));
     }
 
     @Override

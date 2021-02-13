@@ -15,6 +15,7 @@ public interface YoutubeService {
     &maxResults=20
     &key=AIzaSyCr1wu-2qV6n9scn2tcrpxJAMJPeFcAgKk
     &channelId=UCVHFbqXqoYvEWM1Ddxl0QDg
+    &q=desenvolvimento+android
 
 
      */
@@ -24,7 +25,8 @@ public interface YoutubeService {
             @Query("order") String order,
             @Query("maxResults") String maxResults,
             @Query("key") String key,
-            @Query("channelId") String channelId
+            @Query("channelId") String channelId,
+            @Query("q") String q
 
 
     );
